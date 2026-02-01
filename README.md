@@ -1,7 +1,6 @@
 # ConverterProxyIOToOmegaSwitcher
 
 Небольшой конвертер с веб-интерфейсом, который принимает строку в формате
-
 `username:password@host:port`, парсит её и генерирует JSON строго заданной
 структуры. Результат можно скачать как файл `ProxyOmegaSwitcher.bak` для
 Omega Switcher.
@@ -28,7 +27,7 @@ python3 -m http.server --directory /workspace/ConverterProxyIOToOmegaSwitcher 80
 php -S 0.0.0.0:8000 -t /workspace/ConverterProxyIOToOmegaSwitcher
 ```
 
-Откройте в браузере: `http://127.0.0.1:8000/index.php`.
+Откройте в браузере: `http://127.0.0.1:8000/script.php`.
 
 ## Пример
 
