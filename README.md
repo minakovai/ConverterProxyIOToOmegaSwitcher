@@ -1,6 +1,7 @@
 # ConverterProxyIOToOmegaSwitcher
 
 Небольшой конвертер с веб-интерфейсом, который принимает строку в формате
+
 `username:password@host:port`, парсит её и генерирует JSON строго заданной
 структуры. Результат можно скачать как файл `ProxyOmegaSwitcher.bak` для
 Omega Switcher.
