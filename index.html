@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ProxyOmega Switcher</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f6f7fb;
+            margin: 0;
+            padding: 40px 16px;
+            color: #1f2933;
+        }
+        .container {
+            max-width: 720px;
+            margin: 0 auto;
+            background: #fff;
+            border-radius: 12px;
+            padding: 32px;
+            box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12);
+        }
+        h1 {
+            margin-top: 0;
+            font-size: 24px;
+        }
+        p, li {
+            color: #52606d;
+        }
+        ol {
+            margin-top: 0;
+            margin-bottom: 20px;
+            padding-left: 20px;
+        }
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        input[type="text"] {
+            width: 100%;
+            padding: 12px 14px;
+            font-size: 16px;
+            border-radius: 8px;
+            border: 1px solid #cbd2d9;
+            box-sizing: border-box;
+            margin-bottom: 16px;
+        }
+        button {
+            background: #2563eb;
+            border: none;
+            color: #fff;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .error {
+            background: #fee2e2;
+            color: #991b1b;
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+        }
+        .success {
+            background: #dcfce7;
+            color: #166534;
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Конвертер Proxy → Omega Switcher</h1>
+        <ol>
+            <li>Приобрести прокси (например <a href="https://proxys.io/?refid=44115" target="_blank" rel="noopener noreferrer">тут</a>).</li>
+            <li>Скопировать строку в формате username:password@host:port.</li>
+            <li>Вставить в строку для парсинга.</li>
+            <li>Скачать файл бэкапа.</li>
+        </ol>
+        <div id="status"></div>
+        <label for="proxy_input">Строка для парсинга</label>
+        <input
+            type="text"
+            id="proxy_input"
+            name="proxy_input"
+            placeholder="username:password@host:port"
+            pattern="[^:@\s]+:[^@\s]+@[^:\s]+:[0-9]+"
+            title="Формат: username:password@host:port"
+            required
+        />
+        <button type="button" id="download">Скачать ProxyOmegaSwitcher.bak</button>
+    </div>
+
+    <script>
+        const downloadButton = document.getElementById('download');
+        const input = document.getElementById('proxy_input');
+        const status = document.getElementById('status');
+        const pattern = /^([^:@\s]+):([^@\s]+)@([^:\s]+):(\d+)$/;
+
+        function buildJson(username, password, host, port) {
+            const payload = {
+                "+auto switch": {
+                    "color": "#99dd99",
+                    "defaultProfileName": "direct",
+                    "name": "auto switch",
+                    "profileType": "SwitchProfile",
+                    "rules": [
+                        {
+                            "condition": {
+                                "conditionType": "HostWildcardCondition",
+                                "pattern": "internal.example.com"
+                            },
+                            "profileName": "direct"
+                        },
+                        {
+                            "condition": {
+                                "conditionType": "HostWildcardCondition",
+                                "pattern": "*.example.com"
+                            },
+                            "profileName": "proxy"
+                        },
+                        {
+                            "condition": {
+                                "conditionType": "HostWildcardCondition",
+                                "pattern": "*.chatgpt.com"
+                            },
+                            "profileName": "proxy"
+                        },
+                        {
+                            "condition": {
+                                "conditionType": "HostWildcardCondition",
+                                "pattern": "*.gosuslugi.ru"
+                            },
+                            "profileName": "direct"
+                        }
+                    ],
+                    "revision": "19be1c9fd3c"
+                },
+                "+proxy": {
+                    "bypassList": [
+                        { "conditionType": "BypassCondition", "pattern": "127.0.0.1" },
+                        { "conditionType": "BypassCondition", "pattern": "::1" },
+                        { "conditionType": "BypassCondition", "pattern": "localhost" }
+                    ],
+                    "color": "#99ccee",
+                    "fallbackProxy": {
+                        "host": host,
+                        "port": Number(port),
+                        "scheme": "http"
+                    },
+                    "name": "proxy",
+                    "profileType": "FixedProfile",
+                    "revision": "19be1c5c9b3",
+                    "auth": {
+                        "fallbackProxy": {
+                            "username": username,
+                            "password": password
+                        }
+                    }
+                },
+                "-addConditionsToBottom": false,
+                "-confirmDeletion": true,
+                "-downloadInterval": 1440,
+                "-enableQuickSwitch": false,
+                "-quickSwitchProfiles": [],
+                "-refreshOnProfileChange": true,
+                "-revertProxyChanges": true,
+                "-showExternalProfile": true,
+                "-showInspectMenu": true,
+                "-showResultProfileOnActionBadgeText": false,
+                "-startupProfileName": "",
+                "schemaVersion": 2,
+                "-monitorWebRequests": true
+            };
+
+            return JSON.stringify(payload, null, 2);
+        }
+
+        function setStatus(message, type) {
+            status.innerHTML = '';
+            if (!message) {
+                return;
+            }
+            const div = document.createElement('div');
+            div.className = type === 'error' ? 'error' : 'success';
+            div.textContent = message;
+            status.appendChild(div);
+        }
+
+        downloadButton.addEventListener('click', () => {
+            const value = input.value.trim();
+            const match = value.match(pattern);
+
+            if (!match) {
+                setStatus('Неверный формат. Пример: username:password@host:port', 'error');
+                return;
+            }
+
+            const [, username, password, host, port] = match;
+            const jsonContent = buildJson(username, password, host, port);
+            const blob = new Blob([jsonContent], { type: 'application/json;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'ProxyOmegaSwitcher.bak';
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            URL.revokeObjectURL(url);
+            setStatus('Файл ProxyOmegaSwitcher.bak успешно скачан.', 'success');
+        });
+    </script>
+</body>
+</html>
